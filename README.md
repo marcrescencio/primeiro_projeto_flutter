@@ -1,6 +1,6 @@
 # alura_curso_primeiro_projeto_flutter
 
-A new Flutter project.
+My first project with Flutter.
 
 ## Getting Started
 
