@@ -1,5 +1,8 @@
 import 'package:alura_curso_primeiro_projeto_flutter/components/task.dart';
+import 'package:alura_curso_primeiro_projeto_flutter/data/task_dao.dart';
 import 'package:flutter/material.dart';
+
+import 'form_screen.dart';
 
 class InitialScreen extends StatefulWidget {
   const InitialScreen({super.key});
@@ -9,9 +12,8 @@ class InitialScreen extends StatefulWidget {
 }
 
 class _InitialScreenState extends State<InitialScreen> {
-  bool opacity = true;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext contextInitial) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -28,6 +30,9 @@ class _InitialScreenState extends State<InitialScreen> {
           ),
           child: AppBar(
             leading: Container(),
+            actions: [
+              IconButton(onPressed: (){
+                setState(() {});}, icon: Icon(Icons.refresh))],
             title: Row(
               children: [
                 Icon(Icons.add_task, color: Colors.white),
@@ -46,98 +51,79 @@ class _InitialScreenState extends State<InitialScreen> {
           ),
         ),
       ),
-      body: AnimatedOpacity(
-        opacity: (opacity == true) ? 1 : 0,
-        duration: Duration(milliseconds: 500),
-        child: ListView(
-          children: [
-            Task(
-              taskName: 'Aprender Flutter',
-              linkImage:
-              'assets/images/flutter.png',
-              difficulty: 3,
-              colorsList: [
-                Colors.blue,
-                Colors.green,
-                Colors.red,
-                Colors.yellow,
-                Colors.purple,
-              ],
-            ),
-            Task(
-              taskName: 'Andar de bike',
-              linkImage:
-              'assets/images/biker.jpeg',
-              difficulty: 2,
-              colorsList: [
-                Colors.blue,
-                Colors.black45,
-                Colors.deepOrange,
-                Colors.greenAccent,
-                Colors.grey,
-              ],
-            ),
-            Task(
-              taskName: 'Jogar futebol',
-              linkImage:
-              'assets/images/futebol.jpeg',
-              difficulty: 1,
-              colorsList: [
-                Colors.blue,
-                Colors.pink,
-                Colors.red.shade700,
-                Colors.teal,
-                Colors.yellowAccent,
-              ],
-            ),
-            Task(
-              taskName: 'Ler livros',
-              linkImage:
-              'assets/images/leitura.jpeg',
-              difficulty: 5,
-              colorsList: [
-                Colors.blue,
-                Colors.green,
-                Colors.red,
-                Colors.yellow,
-                Colors.purple,
-              ],
-            ),
-            Task(
-              taskName: 'Dormir',
-              linkImage:
-              'assets/images/dormir.jpg',
-              difficulty: 1,
-              colorsList: [
-                Colors.blue,
-                Colors.deepPurple,
-                Colors.lime,
-                Colors.purple,
-                Colors.grey,
-              ],
-            ),
-            Task(
-              taskName: 'Correr',
-              linkImage:
-              'assets/images/correr.jpg',
-              difficulty: 4,
-              colorsList: [
-                Colors.blue,
-                Colors.green,
-                Colors.red,
-                Colors.yellow,
-                Colors.purple,
-              ],
-            ),
-            SizedBox(height: 80,),
-          ],
+      body: Padding(
+          padding: EdgeInsets.only(top: 10, bottom: 85),
+          child: FutureBuilder<List<Task>>(
+              future: TaskDao().findAll(),
+              builder: (context, snapshot){
+                List<Task>? items = snapshot.data;
+                switch(snapshot.connectionState){
+
+                  case ConnectionState.none:
+                    return Center(
+                      child: Column(children: [
+                        CircularProgressIndicator(),
+                        Text('Carregando...')
+                      ],),
+                    );
+                  case ConnectionState.waiting:
+                    Center(
+                      child: Column(children: [
+                        CircularProgressIndicator(),
+                        Text('Carregando...')
+                      ],),
+                    );
+                  case ConnectionState.active:
+                    Center(
+                      child: Column(children: [
+                        CircularProgressIndicator(),
+                        Text('Carregando...')
+                      ],),
+                    );
+                  case ConnectionState.done:
+                    if(snapshot.hasData && items != null){
+                      if(items.isNotEmpty){
+                        return ListView.builder(
+                          itemCount: items.length,
+                          itemBuilder: (BuildContext context, int index){
+                            final Task task = items[index];
+                            return task;
+                          },);
+                      }
+                      return Center(
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 112,
+                            ),
+                            Text(
+                              'Nenhuma tarefa cadastrada',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                    return Text('Erro ao carregar tarefas');
+                }
+                return Text('Erro desconhecido');
+
+          }),
         ),
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          setState(() {
-            opacity = !opacity;
-          });
+          Navigator.push(
+            contextInitial,
+            MaterialPageRoute(
+              builder: (contextNew) => FormScreen(
+                taskContext: contextInitial,
+              ),
+            ),
+          ).then((value) => setState(() {}));
         },
         child: const Icon(Icons.add),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/task_dao.dart';
 import 'difficulty.dart';
 
 class Task extends StatefulWidget {
@@ -8,7 +9,7 @@ class Task extends StatefulWidget {
   final int difficulty;
   final List<Color> colorsList;
 
-  const Task({
+  Task({
     required this.taskName,
     required this.linkImage,
     required this.difficulty,
@@ -16,21 +17,30 @@ class Task extends StatefulWidget {
     super.key
   });
 
+  int nivel = 0;
+  Color containerColor = Colors.blue;
+  int colorIndex = 0;
+
   @override
   State<Task> createState() => _TaskState();
 }
 
 class _TaskState extends State<Task> {
-  int nivel = 0;
-  Color containerColor = Colors.blue;
-  int colorIndex = 0;
+
+
+  bool assetOrNetwork() {
+    if (widget.linkImage.contains('http')) {
+      return false;
+    }
+    return true;
+  }
 
   void _updateContainerColor() {
     setState(() {
-      if ((widget.difficulty > 0) ? (nivel / widget.difficulty) / 10 >= 1 : false) {
-        nivel = 0; // Reinicia a contagem
-        colorIndex = (colorIndex + 1) % widget.colorsList.length; // Alterna para a próxima cor
-        containerColor = widget.colorsList[colorIndex];
+      if ((widget.difficulty > 0) ? (widget.nivel / widget.difficulty) / 10 >= 1 : false) {
+        widget.nivel = 0; // Reinicia a contagem
+        widget.colorIndex = (widget.colorIndex + 1) % widget.colorsList.length; // Alterna para a próxima cor
+        widget.containerColor = widget.colorsList[widget.colorIndex];
       }
     });
   }
@@ -44,7 +54,7 @@ class _TaskState extends State<Task> {
           Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(5),
-              color: containerColor,
+              color: widget.containerColor,
             ),
             height: 140,
           ),
@@ -68,7 +78,10 @@ class _TaskState extends State<Task> {
                       height: 100,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(5),
-                        child: Image.asset(
+                        child: assetOrNetwork() ? Image.asset(
+                          widget.linkImage,
+                          fit: BoxFit.cover,
+                        ) : Image.network(
                           widget.linkImage,
                           fit: BoxFit.cover,
                         ),
@@ -94,9 +107,13 @@ class _TaskState extends State<Task> {
                     SizedBox(
                       width: 62,
                       height: 62,
-                      child: ElevatedButton(onPressed: (){
+                      child: ElevatedButton(
+                        onLongPress: (){
+                          TaskDao().delete(widget.taskName);
+                        },
+                        onPressed: (){
                         setState(() {
-                          nivel++;
+                          widget.nivel++;
                           _updateContainerColor();
                         });
                       },
@@ -127,13 +144,13 @@ class _TaskState extends State<Task> {
                     SizedBox(
                       width: 200,
                       child: LinearProgressIndicator(
-                        value: (widget.difficulty > 0) ? (nivel/widget.difficulty) / 10 : 1,
+                        value: (widget.difficulty > 0) ? (widget.nivel/widget.difficulty) / 10 : 1,
                   //      minHeight: 15,
                         backgroundColor: Colors.black26,
                         color: Colors.white,
                       ),
                     ),
-                    Text('Nivel: $nivel',
+                    Text('Nivel: ${widget.nivel}',
                       style: TextStyle(fontSize: 18, color: Colors.white),),
                   ],
                 ),
